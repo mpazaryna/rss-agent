@@ -1,0 +1,25 @@
+{
+  "name": "rss-agent-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for RSS feed fetching and parsing",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --exclude test/e2e/**",
+    "test:watch": "vitest --exclude test/e2e/**",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "test:e2e:dev": "WORKER_URL=https://rss-agent-dev.mpazbot.workers.dev vitest run --config vitest.e2e.config.ts",
+    "test:e2e:staging": "WORKER_URL=https://rss-agent-staging.mpazbot.workers.dev vitest run --config vitest.e2e.config.ts",
+    "test:e2e:prod": "WORKER_URL=https://rss-agent.mpazbot.workers.dev vitest run --config vitest.e2e.config.ts",
+    "test:all": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.10.11",
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.7.2",
+    "vitest": "3.0.5",
+    "wrangler": "^3.92.0"
+  }
+}

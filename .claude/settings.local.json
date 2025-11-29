@@ -3,7 +3,11 @@
     "allow": [
       "WebFetch(domain:developers.cloudflare.com)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(mkdir:*)",
+      "Bash(npm run test)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run test:*)"
     ],
     "deny": [],
     "ask": []

@@ -236,32 +236,80 @@ RSS Agent is a Cloudflare Worker that provides a stateless RSS fetching and pars
 
 ---
 
+### 14. End-to-End Tests (Post-Deployment) - REQUIRED
+**Prerequisites:**
+- Worker deployed to Cloudflare (staging or production)
+- Deployment URL available
+
+**Write e2e tests for:**
+- `GET /health` returns expected response from deployed worker
+- `POST /fetch` successfully fetches and parses a real RSS feed
+- `POST /fetch` successfully fetches and parses a real Atom feed
+- `POST /fetch` with `since` parameter filters results correctly
+- `POST /fetch` with `limit` parameter caps results correctly
+- `POST /batch` fetches multiple real feeds in parallel
+- Error responses match expected schema for invalid inputs
+- Caching behavior works correctly (second request returns cached: true)
+- Rate limiting triggers 429 when threshold exceeded
+
+**Implement:**
+- Create `test/e2e/` directory for e2e test files
+- Use test runner (Vitest) with real HTTP requests to deployed URL
+- Configure deployment URL via environment variable
+- Add npm script: `npm run test:e2e`
+
+**Notes:**
+- Unit/integration tests (Steps 1-13) use Miniflare for local simulation
+- E2E tests validate actual Cloudflare deployment behavior
+- E2E tests should run against staging before production deploy
+- E2E tests are required before considering the worker production-ready
+
+---
+
 ## Completion Criteria
 
 **All tests passing:**
-- [ ] Unit tests for URL validation
-- [ ] Unit tests for RSS 2.0 parsing
-- [ ] Unit tests for Atom parsing
-- [ ] Unit tests for feed fetching
-- [ ] Unit tests for KV cache operations
-- [ ] Unit tests for rate limiting
-- [ ] Integration tests for `/health` endpoint
-- [ ] Integration tests for `/fetch` endpoint
-- [ ] Integration tests for `/batch` endpoint
-- [ ] Integration tests for caching behavior
+- [x] Unit tests for URL validation (11 tests)
+- [x] Unit tests for RSS 2.0 parsing (15 tests)
+- [x] Unit tests for Atom parsing (17 tests)
+- [x] Unit tests for feed fetching (11 tests)
+- [x] Unit tests for KV cache operations (17 tests)
+- [x] Unit tests for rate limiting (9 tests)
+- [x] Integration tests for `/health` endpoint (5 tests)
+- [x] Integration tests for `/fetch` endpoint (12 + 6 caching tests)
+- [x] Integration tests for `/batch` endpoint (18 tests)
+- [x] Integration tests for caching behavior (9 conditional + 6 endpoint tests)
+- [x] E2E tests against deployed worker (11 tests)
 
 **TDD cycle followed:**
-- [ ] Each component had tests written first
-- [ ] No implementation without failing tests
-- [ ] Refactoring performed after green tests
+- [x] Each component had tests written first
+- [x] No implementation without failing tests
+- [x] Refactoring performed after green tests
 
 **Spec requirements met:**
-- [ ] `/health` returns status, version, timestamp
-- [ ] `/fetch` parses RSS 2.0 and Atom feeds
-- [ ] `/fetch` supports `since` and `limit` parameters
-- [ ] `/batch` fetches multiple feeds in parallel
-- [ ] KV caching with 15-minute default TTL
-- [ ] ETag/Last-Modified conditional request support
-- [ ] Error responses: 400, 404, 422, 429, 504
-- [ ] Rate limiting with retryAfter
-- [ ] Response schema matches spec exactly
+- [x] `/health` returns status, version, timestamp
+- [x] `/fetch` parses RSS 2.0 and Atom feeds
+- [x] `/fetch` supports `since` and `limit` parameters
+- [x] `/batch` fetches multiple feeds in parallel
+- [x] KV caching with 15-minute default TTL
+- [x] ETag/Last-Modified conditional request support
+- [x] Error responses: 400, 404, 422, 429, 504
+- [x] Rate limiting with retryAfter
+- [x] Response schema matches spec exactly
+
+## Deployment Status
+
+**Environments configured:**
+- [x] Production KV namespace created
+- [x] Staging KV namespace created
+- [x] Dev KV namespace created
+
+**Deployed:**
+- [x] Dev environment: https://rss-agent-dev.mpazbot.workers.dev
+- [ ] Staging environment
+- [ ] Production environment
+
+**Test Results:**
+- Unit/Integration: 148 passing tests
+- E2E: 11 passing tests
+- **Total: 159 tests**
