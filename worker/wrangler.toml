@@ -21,6 +21,9 @@ id = "a0bf864b9ee64b30b277d9837b8cd8af"
 [env.staging]
 name = "rss-agent-staging"
 
+[env.staging.ai]
+binding = "AI"
+
 [[env.staging.kv_namespaces]]
 binding = "FEED_CACHE"
 id = "bbb955f7c48c4eaea168fbeb2e13b4b1"
@@ -31,6 +34,9 @@ id = "bbb955f7c48c4eaea168fbeb2e13b4b1"
 # =============================================================================
 [env.dev]
 name = "rss-agent-dev"
+
+[env.dev.ai]
+binding = "AI"
 
 [[env.dev.kv_namespaces]]
 binding = "FEED_CACHE"
