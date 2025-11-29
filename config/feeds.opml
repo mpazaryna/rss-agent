@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>RSS Agent Feed Subscriptions</title>
+    <dateModified>2025-11-29T00:00:00Z</dateModified>
+  </head>
+  <body>
+    <outline text="AI & ML" title="AI & ML" >
+      <outline type="rss" text="Hugging Face Blog"
+               xmlUrl="https://huggingface.co/blog/feed.xml"
+               htmlUrl="https://huggingface.co/blog"/>
+      <outline type="rss" text="OpenAI Blog"
+               xmlUrl="https://openai.com/blog/rss.xml"
+               htmlUrl="https://openai.com/blog"/>
+    </outline>
+    <outline text="Tech News" title="Tech News" >
+      <outline type="rss" text="Ars Technica"
+               xmlUrl="https://feeds.arstechnica.com/arstechnica/index"
+               htmlUrl="https://arstechnica.com"/>
+      <outline type="rss" text="The Verge"
+               xmlUrl="https://www.theverge.com/rss/index.xml"
+               htmlUrl="https://www.theverge.com"/>
+    </outline>
+    <outline text="Development" title="Development" >
+      <outline type="rss" text="Cloudflare Blog"
+               xmlUrl="https://blog.cloudflare.com/rss/"
+               htmlUrl="https://blog.cloudflare.com"/>
+      <outline type="rss" text="GitHub Blog"
+               xmlUrl="https://github.blog/feed/"
+               htmlUrl="https://github.blog"/>
+    </outline>
+  </body>
+</opml>

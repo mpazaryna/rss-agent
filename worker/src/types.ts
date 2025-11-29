@@ -41,3 +41,41 @@ export interface ParseResult {
   error?: ErrorCode;
   message?: string;
 }
+
+// OPML Types
+export interface OpmlFeed {
+  text: string;
+  xmlUrl: string;
+  htmlUrl: string;
+  type: string;
+}
+
+export interface OpmlCategory {
+  text: string;
+  title: string;
+  feeds: OpmlFeed[];
+}
+
+export interface OpmlDocument {
+  title: string;
+  dateModified?: string;
+  categories: OpmlCategory[];
+}
+
+// Feed Collection Types
+export interface CollectionFeed {
+  url: string;
+  name: string;
+}
+
+export interface FeedCollection {
+  id: string;
+  name: string;
+  description?: string;
+  tags?: string[];
+  feeds: CollectionFeed[];
+}
+
+export interface FeedCollectionsDocument {
+  collections: FeedCollection[];
+}
