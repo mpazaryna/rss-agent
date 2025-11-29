@@ -88,4 +88,11 @@ Error codes: 400 (invalid_url), 404 (feed_not_found), 422 (parse_error), 429 (ra
 
 - `github.com/mpazaryna/orchestrator` - Skill definitions and batch execution
 - `github.com/mpazaryna/claude-toolkit` - Agent definitions
-- systemata - Configuration files (feeds.opml, feed-collections.json)
+- `github.com/mpazaryna/systemata` - Configuration files (feeds.opml, feed-collections.json)
+
+## Documentation References
+
+- https://developers.cloudflare.com/workers/ - Cloudflare Workers platform
+- https://developers.cloudflare.com/agents - Cloudflare Agents SDK
+- https://developers.cloudflare.com/workers-ai/ - Workers AI (inference)
+- https://developers.cloudflare.com/ai-gateway/ - AI Gateway (routing, caching, rate limiting)
