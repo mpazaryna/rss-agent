@@ -418,15 +418,15 @@ Grouped feeds with metadata for agent context:
 
 ---
 
-### Phase 3: Claude Code Agent
+### Phase 3: Claude Code Agent ✅
 
 **Goal:** Natural language feed interaction
 
 **Deliverables:**
-- [ ] `feed-fetch.md` agent definition in claude-toolkit
-- [ ] `feeds.opml` in systemata
-- [ ] `feed-collections.json` in systemata
-- [ ] Agent can invoke worker and present results
+- [x] `feed-fetch.md` agent definition
+- [x] `feeds.opml` feed subscriptions
+- [x] `feed-collections.json` grouped feeds
+- [x] Agent can invoke worker and present results
 
 **Success criteria:** "What's new in AI?" returns relevant feed items
 
@@ -434,7 +434,24 @@ Grouped feeds with metadata for agent context:
 
 ---
 
-### Phase 4: Orchestrator Integration
+### Phase 4: Intelligence Layer (Workers AI)
+
+**Goal:** AI-enhanced feed processing
+
+**Deliverables:**
+- [ ] Workers AI integration for summarization
+- [ ] `/summarize` endpoint for article summarization
+- [ ] Topic extraction and categorization
+- [ ] Relevance scoring against project context
+- [ ] Update `feed-fetch` agent with summarization capabilities
+
+**Success criteria:** "Summarize this week's AI news" returns AI-generated summaries
+
+**Estimated effort:** 4-6 hours
+
+---
+
+### Phase 5: Orchestrator Integration (Future)
 
 **Goal:** Batch processing via orchestrator
 
@@ -447,22 +464,6 @@ Grouped feeds with metadata for agent context:
 **Success criteria:** Orchestrator can run feed fetches across all collections
 
 **Estimated effort:** 3-4 hours
-
----
-
-### Phase 5: Intelligence Layer (Future)
-
-**Goal:** AI-enhanced feed processing
-
-**Deliverables:**
-- [ ] Workers AI integration for summarization
-- [ ] Topic extraction and categorization
-- [ ] Relevance scoring against project context
-- [ ] `feed-summarize` agent
-
-**Success criteria:** "Summarize this week's AI news relevant to my projects"
-
-**Estimated effort:** 4-6 hours
 
 ---
 
@@ -528,13 +529,25 @@ rss-agent/
 - [x] Rate limiting active (100 req/60s)
 - [x] `/batch` endpoint fetches multiple feeds in parallel
 
+### Phase 3 Complete When: ✅
+- [x] Agent definition exists and works
+- [x] Config files (OPML, collections) created
+- [x] Agent can list feeds, fetch singles, fetch collections
+- [x] Natural language queries return formatted results
+
+### Phase 4 Complete When:
+- [ ] Workers AI binding configured
+- [ ] `/summarize` endpoint returns AI summaries
+- [ ] Agent can summarize articles on request
+- [ ] Summaries cached in KV
+
 ### Spike Complete When:
 - All phases 1-4 complete
 - Pattern documented and transferable
 - Confidence to apply pattern to Joe project
 
 ### Current Status
-**Phases 1-2 Complete** | 159 tests passing | Dev environment live
+**Phases 1-3 Complete** | 213 tests passing | Dev environment live
 
 ---
 
@@ -560,7 +573,7 @@ rss-agent/
 
 ---
 
-**Document Version:** 1.1
+**Document Version:** 1.2
 **Last Updated:** November 29, 2025
 **Author:** Claude Code + Paz
-**Next Steps:** Phase 3 - Claude Code Agent integration
+**Next Steps:** Phase 4 - Workers AI summarization
