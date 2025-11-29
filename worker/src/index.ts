@@ -2,9 +2,14 @@ import type { HealthResponse, ErrorResponse, FeedItem } from "./types";
 import { validateUrl } from "./validate";
 import { fetchFeed, fetchFeedWithCache } from "./fetch";
 import { checkRateLimit, incrementRateLimit } from "./ratelimit";
+import { fetchArticleContent } from "./article";
+import { summarizeText, SummaryStyle } from "./summarize";
+import { getCachedSummary, cacheSummary } from "./summary-cache";
+import { extractTopics } from "./topics";
 
 interface Env {
   FEED_CACHE: KVNamespace;
+  AI: Ai;
 }
 
 interface FetchRequestBody {
@@ -22,6 +27,8 @@ interface BatchRequestBody {
   feeds?: BatchFeedInput[];
   since?: string;
   limit?: number;
+  summarize?: boolean;
+  summaryStyle?: SummaryStyle;
 }
 
 interface BatchFeedResult {
@@ -38,6 +45,26 @@ interface BatchFeedResult {
   message?: string;
 }
 
+interface SummarizeRequestBody {
+  url?: string;
+  style?: SummaryStyle;
+  forceRefresh?: boolean;
+}
+
+interface SummarizeSuccessResponse {
+  success: true;
+  summary: string;
+  title?: string;
+  url: string;
+  topics?: string[];
+  meta: {
+    model: string;
+    style: SummaryStyle;
+    summarizedAt: string;
+    cached: boolean;
+  };
+}
+
 interface BatchSuccessResponse {
   success: true;
   results: BatchFeedResult[];
@@ -46,6 +73,7 @@ interface BatchSuccessResponse {
     successCount: number;
     failureCount: number;
     totalItems: number;
+    summarizedCount?: number;
   };
 }
 
@@ -81,13 +109,16 @@ function getHttpStatus(errorCode: string): number {
     case "invalid_url":
       return 400;
     case "feed_not_found":
+    case "article_not_found":
       return 404;
     case "parse_error":
+    case "content_extraction_failed":
       return 422;
     case "rate_limited":
       return 429;
     case "timeout":
       return 504;
+    case "summarization_failed":
     default:
       return 500;
   }
@@ -291,6 +322,9 @@ async function handleBatch(request: Request, env: Env): Promise<Response> {
     );
   }
 
+  const summaryStyle: SummaryStyle = body.summaryStyle || "brief";
+  let summarizedCount = 0;
+
   // Fetch all feeds in parallel
   const fetchPromises = body.feeds.map(async (feed): Promise<BatchFeedResult> => {
     // Validate URL
@@ -317,11 +351,56 @@ async function handleBatch(request: Request, env: Env): Promise<Response> {
     }
 
     // Apply filters
-    const filteredItems = applyFilters(
+    let filteredItems = applyFilters(
       result.items || [],
       body.since,
       body.limit
     );
+
+    // If summarize is requested, add AI summaries to items
+    if (body.summarize) {
+      const itemsWithSummaries = await Promise.all(
+        filteredItems.map(async (item) => {
+          try {
+            // Check cache first
+            const cached = await getCachedSummary(env.FEED_CACHE, item.url, summaryStyle);
+            if (cached) {
+              summarizedCount++;
+              return { ...item, summary: cached.summary };
+            }
+
+            // Fetch article and summarize
+            const articleResult = await fetchArticleContent(item.url);
+            if (!articleResult.success) {
+              return item; // Keep original summary from feed
+            }
+
+            const summarizeResult = await summarizeText(
+              articleResult.content!,
+              env.AI,
+              { style: summaryStyle }
+            );
+
+            if (!summarizeResult.success) {
+              return item; // Keep original summary from feed
+            }
+
+            // Cache the summary
+            await cacheSummary(env.FEED_CACHE, item.url, summaryStyle, {
+              summary: summarizeResult.summary!,
+              title: articleResult.title,
+              model: summarizeResult.model!,
+            });
+
+            summarizedCount++;
+            return { ...item, summary: summarizeResult.summary! };
+          } catch {
+            return item; // Keep original summary on any error
+          }
+        })
+      );
+      filteredItems = itemsWithSummaries;
+    }
 
     return {
       url: feed.url,
@@ -354,6 +433,133 @@ async function handleBatch(request: Request, env: Env): Promise<Response> {
       successCount,
       failureCount,
       totalItems,
+      ...(body.summarize && { summarizedCount }),
+    },
+  };
+
+  return jsonResponse(response);
+}
+
+async function handleSummarize(request: Request, env: Env): Promise<Response> {
+  // Check rate limit
+  const clientId = getClientId(request);
+  const rateLimitResult = await checkRateLimit(env.FEED_CACHE, clientId);
+
+  if (!rateLimitResult.allowed) {
+    return errorResponse(
+      {
+        error: "rate_limited",
+        message: "Too many requests",
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      429
+    );
+  }
+
+  // Increment rate limit counter
+  await incrementRateLimit(env.FEED_CACHE, clientId);
+
+  // Parse request body
+  let body: SummarizeRequestBody;
+  try {
+    body = await request.json();
+  } catch {
+    return errorResponse(
+      { error: "invalid_url", message: "Invalid JSON body" },
+      400
+    );
+  }
+
+  // Validate URL
+  if (!body.url) {
+    return errorResponse(
+      { error: "invalid_url", message: "URL is required" },
+      400
+    );
+  }
+
+  const validation = validateUrl(body.url);
+  if (!validation.valid) {
+    return errorResponse(
+      { error: "invalid_url", message: validation.message || "Invalid URL" },
+      400
+    );
+  }
+
+  const style: SummaryStyle = body.style || "brief";
+
+  // Check cache first (unless forceRefresh is set)
+  if (!body.forceRefresh) {
+    const cached = await getCachedSummary(env.FEED_CACHE, body.url, style);
+    if (cached) {
+      const response: SummarizeSuccessResponse = {
+        success: true,
+        summary: cached.summary,
+        title: cached.title,
+        url: body.url,
+        topics: cached.topics,
+        meta: {
+          model: cached.model,
+          style,
+          summarizedAt: new Date().toISOString(),
+          cached: true,
+        },
+      };
+      return jsonResponse(response);
+    }
+  }
+
+  // Fetch article content
+  const articleResult = await fetchArticleContent(body.url);
+  if (!articleResult.success) {
+    const status = getHttpStatus(articleResult.error || "content_extraction_failed");
+    return errorResponse(
+      {
+        error: articleResult.error || "content_extraction_failed",
+        message: articleResult.message || "Failed to fetch article",
+      },
+      status
+    );
+  }
+
+  // Summarize the content and extract topics in parallel
+  const [summarizeResult, topicsResult] = await Promise.all([
+    summarizeText(articleResult.content!, env.AI, { style }),
+    extractTopics(articleResult.content!, env.AI),
+  ]);
+
+  if (!summarizeResult.success) {
+    return errorResponse(
+      {
+        error: summarizeResult.error || "summarization_failed",
+        message: summarizeResult.message || "Failed to summarize article",
+      },
+      500
+    );
+  }
+
+  // Topics are optional - don't fail if extraction fails
+  const topics = topicsResult.success ? topicsResult.topics : undefined;
+
+  // Cache the result (including topics if available)
+  await cacheSummary(env.FEED_CACHE, body.url, style, {
+    summary: summarizeResult.summary!,
+    title: articleResult.title,
+    model: summarizeResult.model!,
+    topics,
+  });
+
+  const response: SummarizeSuccessResponse = {
+    success: true,
+    summary: summarizeResult.summary!,
+    title: articleResult.title,
+    url: body.url,
+    topics,
+    meta: {
+      model: summarizeResult.model!,
+      style,
+      summarizedAt: new Date().toISOString(),
+      cached: false,
     },
   };
 
@@ -391,6 +597,16 @@ export default {
         );
       }
       return handleBatch(request, env);
+    }
+
+    if (url.pathname === "/summarize") {
+      if (request.method !== "POST") {
+        return errorResponse(
+          { error: "invalid_url", message: "Method not allowed" },
+          405
+        );
+      }
+      return handleSummarize(request, env);
     }
 
     return new Response("Not found", { status: 404 });

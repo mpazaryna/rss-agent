@@ -2,6 +2,10 @@ name = "rss-agent"
 main = "src/index.ts"
 compatibility_date = "2024-11-27"
 
+# Workers AI binding
+[ai]
+binding = "AI"
+
 # =============================================================================
 # Production Environment (default)
 # Deploy: wrangler deploy

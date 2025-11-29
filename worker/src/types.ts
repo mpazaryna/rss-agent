@@ -4,7 +4,7 @@ export interface HealthResponse {
   timestamp: string;
 }
 
-export type ErrorCode = "invalid_url" | "feed_not_found" | "parse_error" | "rate_limited" | "timeout";
+export type ErrorCode = "invalid_url" | "feed_not_found" | "parse_error" | "rate_limited" | "timeout" | "invalid_input" | "summarization_failed" | "content_extraction_failed" | "article_not_found" | "topic_extraction_failed";
 
 export interface ErrorResponse {
   error: ErrorCode;

@@ -79,6 +79,17 @@ npm run test:watch    # Watch mode
 - **RSS 2.0 first**, then Atom support
 - Cache key structure: `feed:{sha256(url)}:content`, `feed:{hash}:etag`, `feed:{hash}:modified`
 
+## AI Model Policy
+
+**No Meta/Facebook models.** This project avoids all Meta-affiliated AI models including Llama and BART.
+
+**Approved models for Workers AI:**
+- `@cf/mistralai/mistral-small-3.1-24b-instruct` (primary)
+- `@cf/google/gemma-3-12b-it` (alternative)
+- Other Mistral, Google, IBM, or Qwen models as needed
+
+This is a values-based decision, not a technical one.
+
 ## API Endpoints
 
 ### `GET /health`

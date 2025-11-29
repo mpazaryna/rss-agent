@@ -44,14 +44,15 @@ binding = "AI"
 
 ### Model Selection
 
-**Primary model:** `@cf/meta/llama-3.1-8b-instruct-fast`
-- Fast inference for summarization
-- Good balance of quality and latency
-- Multilingual support
+**Primary model:** `@cf/mistralai/mistral-small-3.1-24b-instruct`
+- High quality summarization
+- 128k context window
+- Function calling support
 
-**Fallback for longer content:** `@cf/facebook/bart-large-cnn`
-- Purpose-built for summarization
-- Better for longer articles
+**Alternative for faster inference:** `@cf/google/gemma-3-12b-it`
+- Google's open model
+- 128k context, 140+ languages
+- Good balance of speed and quality
 
 ---
 

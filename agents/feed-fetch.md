@@ -2,14 +2,15 @@
 
 ## Purpose
 
-Fetch, filter, and present RSS feed content based on user requests. This agent enables natural language interaction with RSS feeds through the rss-agent worker deployed on Cloudflare.
+Fetch, filter, summarize, and present RSS feed content based on user requests. This agent enables natural language interaction with RSS feeds through the rss-agent worker deployed on Cloudflare, with AI-powered summarization capabilities.
 
 ## Tools Available
 
 ### HTTP Endpoints
 - **Worker Base URL (dev):** `https://rss-agent-dev.mpazbot.workers.dev`
 - **POST /fetch** - Fetch and parse a single RSS/Atom feed
-- **POST /batch** - Fetch multiple feeds in parallel
+- **POST /batch** - Fetch multiple feeds in parallel (supports AI summarization)
+- **POST /summarize** - Summarize a single article with AI
 - **GET /health** - Check worker health status
 
 ### Local Configuration Files
@@ -33,7 +34,18 @@ Fetch, filter, and present RSS feed content based on user requests. This agent e
    - All feeds fetched in parallel
    - Results aggregated with success/failure counts
 
-4. **Filter and format**
+4. **Summarize articles**
+   - Use POST /summarize with article `url` to get AI summary
+   - Optional `style` parameter: "brief" (default), "detailed", or "bullets"
+   - Returns summary, title, topics, and metadata
+   - Summaries are cached for 24 hours
+
+5. **Batch summarization**
+   - Use POST /batch with `summarize: true` to get AI summaries for all items
+   - Optional `summaryStyle` parameter for summary format
+   - Each item will have an AI-generated summary replacing the feed description
+
+6. **Filter and format**
    - Filter by date using `since` (ISO 8601 or shorthand: "24h", "7d", "30d")
    - Limit results with `limit` parameter
    - Present results in readable markdown
@@ -53,7 +65,10 @@ Fetch, filter, and present RSS feed content based on user requests. This agent e
 - Common errors to handle:
   - `invalid_url` (400) - URL format issue
   - `feed_not_found` (404) - URL returned 404
+  - `article_not_found` (404) - Article URL returned 404
   - `parse_error` (422) - Content isn't valid RSS/Atom
+  - `content_extraction_failed` (422) - Could not extract article content
+  - `summarization_failed` (500) - AI summarization error
   - `rate_limited` (429) - Too many requests, includes retryAfter
   - `timeout` (504) - Fetch took too long
 
@@ -211,4 +226,141 @@ Please check the URL is correct and points to a valid RSS or Atom feed.
     "totalItems": 10
   }
 }
+```
+
+### POST /summarize
+```json
+// Request
+{
+  "url": "https://blog.cloudflare.com/some-article",
+  "style": "brief"  // optional: "brief" | "detailed" | "bullets"
+}
+
+// Response
+{
+  "success": true,
+  "summary": "Cloudflare announces new edge computing features...",
+  "title": "Announcing New Edge Features",
+  "url": "https://blog.cloudflare.com/some-article",
+  "topics": ["edge computing", "cloudflare", "performance"],
+  "meta": {
+    "model": "@cf/mistralai/mistral-small-3.1-24b-instruct",
+    "style": "brief",
+    "summarizedAt": "2025-11-29T12:00:00Z",
+    "cached": false
+  }
+}
+```
+
+### POST /batch with summarization
+```json
+// Request
+{
+  "feeds": [
+    {"url": "https://blog.cloudflare.com/rss/"}
+  ],
+  "summarize": true,
+  "summaryStyle": "brief",
+  "limit": 3
+}
+
+// Response
+{
+  "success": true,
+  "results": [
+    {
+      "url": "https://blog.cloudflare.com/rss/",
+      "success": true,
+      "feed": {"title": "The Cloudflare Blog"},
+      "items": [
+        {
+          "title": "Article Title",
+          "url": "https://blog.cloudflare.com/article",
+          "published": "2025-11-28T10:00:00Z",
+          "summary": "AI-generated summary of the article...",
+          "categories": ["Engineering"]
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "totalFeeds": 1,
+    "successCount": 1,
+    "failureCount": 0,
+    "totalItems": 3,
+    "summarizedCount": 3
+  }
+}
+```
+
+## Summarization Example Interactions
+
+### Summarize a specific article
+**User:** "Summarize this article: https://blog.cloudflare.com/workers-ai-update"
+
+**Agent action:**
+```bash
+curl -X POST https://rss-agent-dev.mpazbot.workers.dev/summarize \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://blog.cloudflare.com/workers-ai-update"}'
+```
+
+**Response format:**
+```
+**Announcing Workers AI Update**
+
+Summary: Cloudflare announced significant updates to their Workers AI
+platform, including support for new models and improved inference speeds...
+
+Topics: workers ai, cloudflare, machine learning
+```
+
+### Get detailed summary
+**User:** "Give me a detailed summary of this article"
+
+**Agent action:**
+```bash
+curl -X POST https://rss-agent-dev.mpazbot.workers.dev/summarize \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/article", "style": "detailed"}'
+```
+
+### Summarize this week's AI news
+**User:** "Summarize this week's AI news"
+
+**Agent action:**
+```bash
+curl -X POST https://rss-agent-dev.mpazbot.workers.dev/batch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "feeds": [
+      {"url": "https://huggingface.co/blog/feed.xml"},
+      {"url": "https://openai.com/blog/rss.xml"}
+    ],
+    "since": "7d",
+    "limit": 5,
+    "summarize": true,
+    "summaryStyle": "brief"
+  }'
+```
+
+**Response format:**
+```
+## AI News This Week
+
+### From Hugging Face Blog
+
+1. **[New Model Release](https://huggingface.co/blog/new-model)**
+   Published: Nov 28, 2025
+   Summary: Hugging Face released a new state-of-the-art model...
+   Topics: nlp, transformers, open source
+
+2. **[Performance Improvements](https://huggingface.co/blog/perf)**
+   Published: Nov 27, 2025
+   Summary: Significant performance improvements announced...
+
+### From OpenAI Blog
+...
+
+*Summarized 10 articles from 2 feeds*
 ```
