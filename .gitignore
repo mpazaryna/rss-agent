@@ -138,3 +138,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .mcp.json.context7
+
+# Cloudflare Workers
+.wrangler/
+.dev.vars

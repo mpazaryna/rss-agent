@@ -5,6 +5,9 @@ export default defineWorkersConfig({
     poolOptions: {
       workers: {
         wrangler: { configPath: "./wrangler.toml" },
+        miniflare: {
+          kvNamespaces: ["FEED_CACHE"],
+        },
       },
     },
   },
