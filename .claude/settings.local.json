@@ -9,7 +9,11 @@
       "Bash(npm run typecheck:*)",
       "Bash(npm run test:*)",
       "Bash(npm run test:agent:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(WORKER_URL=https://rss-agent.mpazbot.workers.dev npx vitest:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
