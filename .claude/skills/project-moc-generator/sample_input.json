@@ -1,0 +1,101 @@
+{
+  "project": {
+    "name": "TaskFlow API",
+    "type": "REST API",
+    "language": "TypeScript",
+    "framework": "Express.js",
+    "version": "2.1.0"
+  },
+  "structure": {
+    "source_directories": [
+      "src/api/",
+      "src/services/",
+      "src/models/",
+      "src/middleware/",
+      "src/utils/"
+    ],
+    "config_files": [
+      "package.json",
+      "tsconfig.json",
+      ".env.example"
+    ],
+    "documentation": {
+      "existing": [
+        "README.md",
+        "docs/devlog/2025-11-15-api-redesign.md",
+        "docs/devlog/2025-11-18-auth-implementation.md"
+      ],
+      "output_location": "docs/"
+    }
+  },
+  "implemented_features": [
+    {
+      "name": "User Authentication",
+      "description": "JWT-based authentication with refresh tokens",
+      "components": [
+        "src/api/auth.ts",
+        "src/services/auth-service.ts",
+        "src/middleware/auth-middleware.ts"
+      ],
+      "status": "implemented",
+      "decision_notes": "Chose JWT over sessions for stateless API design. Considered OAuth2 but too complex for current needs."
+    },
+    {
+      "name": "Task Management",
+      "description": "CRUD operations for tasks with filtering and sorting",
+      "components": [
+        "src/api/tasks.ts",
+        "src/services/task-service.ts",
+        "src/models/task.ts"
+      ],
+      "status": "implemented"
+    },
+    {
+      "name": "Real-time Notifications",
+      "description": "WebSocket-based notifications for task updates",
+      "components": [
+        "src/services/notification-service.ts",
+        "src/websocket/notification-handler.ts"
+      ],
+      "status": "implemented",
+      "decision_notes": "Chose WebSockets over polling for better performance. Socket.io rejected due to overhead."
+    }
+  ],
+  "architecture": {
+    "patterns": [
+      "Repository pattern for data access",
+      "Service layer for business logic",
+      "Middleware for cross-cutting concerns"
+    ],
+    "tech_stack": {
+      "runtime": "Node.js 20",
+      "database": "PostgreSQL",
+      "caching": "Redis",
+      "testing": "Jest + Supertest"
+    }
+  },
+  "devlog_context": [
+    {
+      "date": "2025-11-15",
+      "file": "docs/devlog/2025-11-15-api-redesign.md",
+      "summary": "Decided to redesign API from REST to hybrid REST+WebSocket. Keeps REST for CRUD, adds WebSocket for real-time features."
+    },
+    {
+      "date": "2025-11-18",
+      "file": "docs/devlog/2025-11-18-auth-implementation.md",
+      "summary": "Implemented JWT authentication. Considered OAuth2, sessions, and API keys. JWT chosen for stateless design and mobile client support."
+    }
+  ],
+  "moc_request": {
+    "type": "complete",
+    "include": [
+      "project_overview",
+      "feature_documentation",
+      "architecture_decisions",
+      "component_maps"
+    ],
+    "link_format": "standard_markdown",
+    "output_location": "docs/",
+    "frontmatter_dates": true
+  }
+}
