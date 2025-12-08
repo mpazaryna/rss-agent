@@ -13,7 +13,10 @@
       "Bash(WORKER_URL=https://rss-agent.mpazbot.workers.dev npx vitest:*)",
       "Bash(npx wrangler:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git -C /Users/mpaz/workspace/rss-agent branch -vv)",
+      "Bash(git -C /Users/mpaz/workspace/rss-agent diff main...01-step --stat)",
+      "Read(//Users/mpaz/workspace/claude-toolkit/**)"
     ],
     "deny": [],
     "ask": []
